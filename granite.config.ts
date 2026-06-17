@@ -2,7 +2,7 @@ import { appsInToss } from '@apps-in-toss/framework/plugins'
 import { defineConfig } from '@granite-js/react-native/config'
 
 export default defineConfig({
-  appName: 'bokbokbok',
+  appName: '복복복',
   plugins: [
     appsInToss({
       brand: {
