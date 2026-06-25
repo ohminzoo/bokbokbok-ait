@@ -34,7 +34,6 @@ const SPEECH: Record<number, string[]> = {
 }
 const SPEECH_PET = ['야옹!!', '더 해줘!!', '냥!!', '골골골~', '거기!!', '냥냥!!', '좋아!!']
 
-const PARTICLES = ['♥', '★', '🐾', '♡', '✦', '💕', '✿']
 
 // ── 음향: Web Audio API (웹/개발 환경) + 진동 (네이티브) ────────────────
 function playCatMeow() {
@@ -82,15 +81,6 @@ function playPetSound() {
   } catch (_) {}
 }
 
-// ── 파티클 타입 ───────────────────────────────────────────────────────────
-interface Particle {
-  id: number
-  x: number
-  type: string
-  translateY: Animated.Value
-  opacity: Animated.Value
-  scale: Animated.Value
-}
 
 // ── 행복도 바 색상 (표정 단계별) ─────────────────────────────────────────
 const BAR_COLORS = ['#B0B8C1', '#FFB3C1', '#FF8FA3', '#FF6B8A', '#3182F6']
@@ -103,12 +93,9 @@ export default function App() {
   const [isPetting, setIsPetting] = useState(false)
   const [speech, setSpeech]       = useState('쓰담 해주세요!')
   const [speechKey, setSpeechKey] = useState(0)
-  const [particles, setParticles] = useState<Particle[]>([])
-
   const isPettingRef  = useRef(false)
   const happinessRef  = useRef(0)
   const petCountRef   = useRef(0)
-  const particleId    = useRef(0)
   const soundThrottle = useRef(0)
   const prevCatState  = useRef(0)
 
@@ -211,35 +198,6 @@ export default function App() {
     return () => clearInterval(id)
   }, [isPetting])
 
-  // 파티클 생성
-  useEffect(() => {
-    if (!isPetting) return
-    const id = setInterval(() => {
-      const pid = particleId.current++
-      const translateY = new Animated.Value(0)
-      const opacity    = new Animated.Value(1)
-      const scale      = new Animated.Value(0.6)
-      setParticles(prev => [
-        ...prev,
-        {
-          id: pid,
-          x: 5 + Math.random() * 90,
-          type: PARTICLES[Math.floor(Math.random() * PARTICLES.length)],
-          translateY, opacity, scale,
-        },
-      ])
-      Animated.parallel([
-        Animated.timing(translateY, { toValue: -140, duration: 1300, useNativeDriver: true }),
-        Animated.timing(opacity, { toValue: 0, duration: 1300, useNativeDriver: true }),
-        Animated.sequence([
-          Animated.spring(scale, { toValue: 1.2, useNativeDriver: true }),
-          Animated.timing(scale, { toValue: 0.4, duration: 900, useNativeDriver: true }),
-        ]),
-      ]).start(() => setParticles(prev => prev.filter(p => p.id !== pid)))
-    }, 250)
-    return () => clearInterval(id)
-  }, [isPetting])
-
   // 말풍선 사이클
   useEffect(() => {
     const cycle = () => {
@@ -287,24 +245,6 @@ export default function App() {
             <Image source={CATS[catState]} style={s.cat} resizeMode="contain" />
           </Animated.View>
 
-          {particles.map(p => (
-            <Animated.Text
-              key={p.id}
-              style={[
-                s.particle,
-                {
-                  left: `${p.x}%` as any,
-                  transform: [
-                    { translateY: p.translateY },
-                    { scale: p.scale },
-                  ],
-                  opacity: p.opacity,
-                },
-              ]}
-            >
-              {p.type}
-            </Animated.Text>
-          ))}
         </Pressable>
 
         {/* 스탯 */}
@@ -406,11 +346,6 @@ const s = StyleSheet.create({
   cat: {
     width: 280,
     height: 280,
-  },
-  particle: {
-    position: 'absolute',
-    bottom: '35%',
-    fontSize: 22,
   },
   stats: {
     width: '100%',
